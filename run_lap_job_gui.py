@@ -27,14 +27,14 @@ def run_lap_job(server, pass_code, device_access_code, lap_file_path):
 
         if response.status_code == 200:
             result = response.json()
-            messagebox.showinfo("Success", f"Job started on Muse.\nResponse: {result}")
+            status_label.config(text=f"Job started on Muse.\nResponse: {result}")
             return True
         else:
             error_text = response.json()
-            messagebox.showerror("Error", f"Error code: {response.status_code}\nDetails: {error_text}")
+            status_label.config(text=f"Error {response.status_code}: {error_text}")
             return False
     except Exception as e:
-        messagebox.showerror("Exception", f"An error occurred: {e}")
+        status_label.config(text=f"Exception: {e}")
         return False
 
 def start_job(event=None):

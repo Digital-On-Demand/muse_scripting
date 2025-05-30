@@ -4,8 +4,9 @@ import sys
 import os
 
 # static variables
-DO_NOTHING = True
-WHITE_THRESHOLD = 245  # can be tweaked (0-255)
+DO_NOTHING = False  # set to True to skip image processing
+WHITE_THRESHOLD = 250  # can be tweaked (0-255)
+BLACK_THRESHOLD = 4  # can be tweaked (0-255)
 
 def fix_image(input_path, recipe_name, fixed_file_path):
     with Image.open(input_path) as img:
@@ -20,26 +21,27 @@ def fix_image(input_path, recipe_name, fixed_file_path):
                 print("Rotating image 90 degrees CCW")
                 fixed = img.rotate(90, expand=True)
 
-            #make rgba just in case
+            # Ensure RGBA
             if fixed.mode != 'RGBA':
                 fixed = fixed.convert('RGBA')
 
-            #get image as np array
+            # To NumPy for pixel math
             data = np.array(fixed)
-
-            #rgba channels
             r, g, b, a = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
 
-            #mask to check for white pixels
+            # Make white pixels transparent
             white_mask = (r > WHITE_THRESHOLD) & (g > WHITE_THRESHOLD) & (b > WHITE_THRESHOLD)
-
-            #make white pixels transparent
             data[white_mask, 3] = 0
 
-            #invert colors
-            data[..., :3] = 255 - data[..., :3]
+            # Create masks for selective inversion
+            black_mask = (r < BLACK_THRESHOLD) & (g < BLACK_THRESHOLD) & (b < BLACK_THRESHOLD)
+            invert_mask = ~(white_mask | black_mask)
 
-            #recombine and save (overwrite) image
+            # Invert only relevant pixels
+            data[..., 0][invert_mask] = 255 - r[invert_mask]
+            data[..., 1][invert_mask] = 255 - g[invert_mask]
+            data[..., 2][invert_mask] = 255 - b[invert_mask]
+
             fixed = Image.fromarray(data, mode='RGBA')
         fixed.save(fixed_file_path)
 

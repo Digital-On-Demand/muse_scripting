@@ -108,4 +108,5 @@ if __name__ == "__main__":
                 )
 
                 # sleep a little
+                print(f"Sleeping for {SLEEP_TIME} seconds before next file scan...")
                 time.sleep(SLEEP_TIME)
