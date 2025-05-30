@@ -1,1 +1,1 @@
-# muse_scripting
+# Muse Scripting
