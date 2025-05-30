@@ -3,7 +3,9 @@ from PIL import Image
 import sys
 import os
 
+# static variables
 DO_NOTHING = True
+WHITE_THRESHOLD = 245  # can be tweaked (0-255)
 
 def fix_image(input_path, recipe_name, fixed_file_path):
     with Image.open(input_path) as img:
@@ -29,8 +31,7 @@ def fix_image(input_path, recipe_name, fixed_file_path):
             r, g, b, a = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
 
             #mask to check for white pixels
-            white_threshold = 245  #can be tweaked (0-255)
-            white_mask = (r > white_threshold) & (g > white_threshold) & (b > white_threshold)
+            white_mask = (r > WHITE_THRESHOLD) & (g > WHITE_THRESHOLD) & (b > WHITE_THRESHOLD)
 
             #make white pixels transparent
             data[white_mask, 3] = 0

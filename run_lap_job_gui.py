@@ -4,11 +4,11 @@ import os
 import time
 import requests
 
-# Global variables
+# static variables
 IS_BETA = True
 LASER_FOLDER_PATH = "Z:/Shared/Muse"
 DEVICE_ACCESS_CODE = "Tribute,Snowy,22"
-SLEEP_TIME = 4
+SLEEP_TIME = 4 #time to sleep before starting job
 
 if IS_BETA:
     server = "https://beta.fslaser.com"
