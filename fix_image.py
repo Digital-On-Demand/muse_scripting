@@ -43,7 +43,7 @@ def fix_image(input_path, recipe_name, fixed_file_path):
             data[..., 2][invert_mask] = 255 - b[invert_mask]
 
             fixed = Image.fromarray(data, mode='RGBA')
-        fixed.save(fixed_file_path)
+        fixed.save(fixed_file_path, dpi=(300, 300))
 
 if __name__ == "__main__":
     path = input("Enter the folder path: ")

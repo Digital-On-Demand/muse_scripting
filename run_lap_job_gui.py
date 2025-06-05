@@ -3,6 +3,7 @@ from tkinter import messagebox
 import os
 import time
 import requests
+from PIL import Image, ImageTk
 
 # static variables
 IS_BETA = True
@@ -46,6 +47,23 @@ def start_job(event=None):
     output_folder = os.path.join(LASER_FOLDER_PATH, "Output")
     lap_file_path = None
 
+    fixed_folder = os.path.join(LASER_FOLDER_PATH, "Fixed")
+    preview_path = None
+    for file_name in os.listdir(fixed_folder):
+        if file_name.endswith(".png") and barcode in file_name:
+            preview_path = os.path.join(fixed_folder, file_name)
+            break
+
+    if preview_path:
+        img = Image.open(preview_path)
+        img.thumbnail((200, 200))
+        img_tk = ImageTk.PhotoImage(img)
+        image_label.config(image=img_tk)
+        image_label.image = img_tk
+    else:
+        image_label.config(image="", text="No preview found")
+
+
     for file_name in os.listdir(output_folder):
         if file_name.startswith(barcode):
             lap_file_path = os.path.join(output_folder, file_name)
@@ -84,5 +102,8 @@ run_button.pack(pady=15)
 
 status_label = tk.Label(window, text="")
 status_label.pack()
+
+image_label = tk.Label(window)
+image_label.pack(pady=5)
 
 window.mainloop()

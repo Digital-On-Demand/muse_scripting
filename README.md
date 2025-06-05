@@ -39,3 +39,5 @@ Script:
 
 # To Do
   - Ping FSL endpoint to stop job once completed
+  - Optimizations to GUI script, cancel button, image preview?
+  - job elapsed timer (use query job status & machine time?)

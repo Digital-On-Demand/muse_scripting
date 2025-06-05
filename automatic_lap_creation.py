@@ -18,7 +18,7 @@ else:
     server = "https://re4.fslaser.com"
     pass_code = "Protract;Aneurism;50"
 
-def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, json_file_path, output_file_path):
+def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, json_file_path, output_file_path, recipe_name):
     try:
         #set URL
         url = f"{server}/api/jobs/standard-png-lap"
@@ -28,7 +28,7 @@ def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, jso
         with Image.open(input_file_path) as img:
             # get image size
             width, height = img.size
-            # Convert width from pixels to millimeters
+            # px to mm
             dpi = 300
             inches_per_mm = 1 / 25.4
             width_mm = width / dpi / inches_per_mm
@@ -36,6 +36,10 @@ def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, jso
 
             print(f"Attempting to center image on y-axis")
             transformation_matrix[4] = width_mm / -2
+
+            if "rocksbottom" in (recipe_name.lower()) or "glasscircle" in (recipe_name.lower()):
+                print(f"Non-rotary job, attempting to move image 25mm up")
+                transformation_matrix[5] = 25
 
             print(f"Scaling image")
             transformation_matrix[0] = .3125
@@ -74,7 +78,7 @@ def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, jso
 
 if __name__ == "__main__":
     # iterate through files in input folder (comment the while True for testing)
-    while True:
+    #while True:
         for filename in os.listdir(f"{LASER_FOLDER_PATH}\\Input"):
             if filename.endswith(".png"):
                 # dynamically get barcode, recipe name, and quantity from filename
@@ -104,7 +108,7 @@ if __name__ == "__main__":
                 output_file_path = os.path.join(output_folder_path, f"{barcode}-{recipe_name}-{quantity}.lap")
                 success = get_standard_lap(
                     server, pass_code, DEVICE_ACCESS_CODE,
-                    fixed_file_path, json_file_path, output_file_path
+                    fixed_file_path, json_file_path, output_file_path, recipe_name
                 )
 
                 # sleep a little
