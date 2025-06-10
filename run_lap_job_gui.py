@@ -37,6 +37,23 @@ def run_lap_job(server, pass_code, device_access_code, lap_file_path):
     except Exception as e:
         status_label.config(text=f"Exception: {e}")
         return False
+    
+def query_and_log_status(barcode):
+    try:
+        url = server + "/api/jobs/api-query-job-status"
+        data = {"pass_code": pass_code, "device_access_code": DEVICE_ACCESS_CODE}
+        time.sleep(5)
+        response = requests.post(url, data=data)
+        output_path = os.path.join(LASER_FOLDER_PATH, f"job_status_{barcode}.txt")
+
+        with open(output_path, "w") as f:
+            if response.status_code == 200:
+                f.write(response.text)
+            else:
+                f.write(f"Error {response.status_code}:\n{response.text}")
+    except Exception as e:
+        with open(os.path.join(LASER_FOLDER_PATH, f"job_status_{barcode}.txt"), "w") as f:
+            f.write(f"Exception: {str(e)}")
 
 def start_job(event=None):
     barcode = barcode_entry.get().strip()
@@ -82,8 +99,11 @@ def start_job(event=None):
 
     if success:
         status_label.config(text=f"Job started for {barcode}")
+        window.update()
+        query_and_log_status(barcode)
     else:
         status_label.config(text=f"Failed to start job for {barcode}")
+
 
     barcode_entry.delete(0, tk.END)
 
