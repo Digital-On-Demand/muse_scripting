@@ -42,7 +42,7 @@ def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, jso
                 transformation_matrix[5] = 25
             if "chug" in (recipe_name.lower()):
                 print(f"Chug job, moving image 15mm right")
-                transformation_matrix[4] = 15
+                transformation_matrix[4] = -15
 
             print(f"Scaling image")
             transformation_matrix[0] = .3125
