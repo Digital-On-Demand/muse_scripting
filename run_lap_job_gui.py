@@ -4,6 +4,7 @@ import os
 import time
 import requests
 from PIL import Image, ImageTk
+import csv
 
 # static variables
 IS_BETA = True
@@ -38,22 +39,38 @@ def run_lap_job(server, pass_code, device_access_code, lap_file_path):
         status_label.config(text=f"Exception: {e}")
         return False
     
-def query_and_log_status(barcode):
-    try:
-        url = server + "/api/jobs/api-query-job-status"
-        data = {"pass_code": pass_code, "device_access_code": DEVICE_ACCESS_CODE}
-        time.sleep(5)
-        response = requests.post(url, data=data)
-        output_path = os.path.join(LASER_FOLDER_PATH, f"job_status_{barcode}.txt")
+def poll_status_and_log_duration(barcode):
+    url = server + "/api/jobs/api-query-job-status"
+    data = {"pass_code": pass_code, "device_access_code": DEVICE_ACCESS_CODE}
+    sleep_interval = 5
+    elapsed = 0
 
-        with open(output_path, "w") as f:
-            if response.status_code == 200:
-                f.write(response.text)
-            else:
-                f.write(f"Error {response.status_code}:\n{response.text}")
+    try:
+        while True:
+            time.sleep(sleep_interval)
+            elapsed += sleep_interval
+            response = requests.post(url, data=data)
+
+            if response.status_code != 200:
+                print(f"Polling error {response.status_code}: {response.text}")
+                break
+
+            status = response.json().get("user_job_status", "").lower()
+            if status != "running":
+                break
+
+        # Log to CSV
+        csv_path = os.path.join(LASER_FOLDER_PATH, "job_times.csv")
+        write_header = not os.path.exists(csv_path)
+
+        with open(csv_path, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            if write_header:
+                writer.writerow(["barcode", "elapsed_time_seconds"])
+            writer.writerow([barcode, elapsed])
+
     except Exception as e:
-        with open(os.path.join(LASER_FOLDER_PATH, f"job_status_{barcode}.txt"), "w") as f:
-            f.write(f"Exception: {str(e)}")
+        print(f"Polling exception: {e}")
 
 def start_job(event=None):
     barcode = barcode_entry.get().strip()
@@ -100,9 +117,10 @@ def start_job(event=None):
     if success:
         status_label.config(text=f"Job started for {barcode}")
         window.update()
-        query_and_log_status(barcode)
+        poll_status_and_log_duration(barcode)
     else:
         status_label.config(text=f"Failed to start job for {barcode}")
+
 
 
     barcode_entry.delete(0, tk.END)
