@@ -40,6 +40,9 @@ def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, jso
             if "rocksbottom" in (recipe_name.lower()) or "glasscircle" in (recipe_name.lower()):
                 print(f"Non-rotary job, attempting to move image 25mm up")
                 transformation_matrix[5] = 25
+            if "chug" in (recipe_name.lower()):
+                print(f"Chug job, moving image 15mm right")
+                transformation_matrix[4] = 15
 
             print(f"Scaling image")
             transformation_matrix[0] = .3125

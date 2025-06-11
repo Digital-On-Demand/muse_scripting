@@ -17,6 +17,9 @@ def fix_image(input_path, recipe_name, fixed_file_path):
             if "rocksbottom" in recipe_name.lower():
                 print("Flipping image along x axis")
                 fixed = img.transpose(Image.FLIP_LEFT_RIGHT)
+            if "chug" in recipe_name.lower():
+                print("Rotating image 270 degrees CCW")
+                fixed = img.rotate(270, expand=True)
             else:
                 print("Rotating image 90 degrees CCW")
                 fixed = img.rotate(90, expand=True)
