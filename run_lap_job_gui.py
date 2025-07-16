@@ -5,6 +5,7 @@ import time
 import requests
 from PIL import Image, ImageTk
 import csv
+from lib import parse_filename
 
 # static variables
 IS_BETA = True
@@ -59,7 +60,6 @@ def poll_status_and_log_duration(barcode):
             if status != "running":
                 break
 
-        # Log to CSV
         csv_path = os.path.join(LASER_FOLDER_PATH, "job_times.csv")
         write_header = not os.path.exists(csv_path)
 
@@ -73,10 +73,9 @@ def poll_status_and_log_duration(barcode):
         print(f"Polling exception: {e}")
 
 def start_job(event=None):
-    barcode = barcode_entry.get().strip()
-    if not barcode:
-        status_label.config(text="Enter a real barcode")
-        return
+    barcode, recipe_name, quantity = parse_filename(file_name)
+    if barcode is None:
+        print(f"Invalid filename format: {file_name}")
 
     output_folder = os.path.join(LASER_FOLDER_PATH, "Output")
     lap_file_path = None
@@ -114,14 +113,15 @@ def start_job(event=None):
 
     success = run_lap_job(server, pass_code, DEVICE_ACCESS_CODE, lap_file_path)
 
-    if success:
-        status_label.config(text=f"Job started for {barcode}")
+    for job_num in range(quantity):
+        status_label.config(text=f"Running job {job_num+1} of {quantity} for {barcode}")
         window.update()
-        poll_status_and_log_duration(barcode)
-    else:
-        status_label.config(text=f"Failed to start job for {barcode}")
-
-
+        success = run_lap_job(server, pass_code, DEVICE_ACCESS_CODE, lap_file_path)
+        if success:
+            poll_status_and_log_duration(barcode)
+        else:
+            status_label.config(text=f"Failed job {job_num+1} for {barcode}")
+            break
 
     barcode_entry.delete(0, tk.END)
 

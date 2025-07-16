@@ -2,10 +2,12 @@ import requests
 import json
 import os
 import time
-from PIL import Image, ImageDraw
-from fix_image import fix_image
+import warnings
+from PIL import Image
+from lib import fix_image, parse_filename
 
 # static variables
+warnings.filterwarnings("ignore", category=UserWarning, module="torchvision")
 IS_BETA = True
 LASER_FOLDER_PATH = "Z:\\Shared\\Muse"
 DEVICE_ACCESS_CODE = "Tribute,Snowy,22"
@@ -40,9 +42,12 @@ def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, jso
             if "rocksbottom" in (recipe_name.lower()) or "glasscircle" in (recipe_name.lower()):
                 print(f"Non-rotary job, attempting to move image 25mm up")
                 transformation_matrix[5] = 25
-            if "chug" in (recipe_name.lower()):
-                print(f"Chug job, moving image 15mm right")
-                transformation_matrix[4] = -15
+            elif "chug" in (recipe_name.lower()):
+                print(f"Chug job, moving image 55mm right")
+                transformation_matrix[4] = -55
+            elif "gossip" in (recipe_name.lower()):
+                print(f"Gossip job, moving image 63mm right")
+                transformation_matrix[4] = -63
 
             print(f"Scaling image")
             transformation_matrix[0] = .3125
@@ -84,15 +89,11 @@ if __name__ == "__main__":
     #while True:
         for filename in os.listdir(f"{LASER_FOLDER_PATH}\\Input"):
             if filename.endswith(".png"):
-                # dynamically get barcode, recipe name, and quantity from filename
-                parts = filename.split("-")
-                if len(parts) >= 3:
-                    barcode = parts[0]
-                    recipe_name = parts[1]
-                    quantity = parts[2].split(".")[0]
-                else:
-                    print(f"Filename format invalid: {filename}")
-                    continue
+                #parse filename
+                barcode, recipe_name, quantity = parse_filename(filename)
+                if barcode is None:
+                    print(f"Invalid filename format: {filename}")
+                    break
 
                 # dynamically get material type
                 config_json = f"settings-{recipe_name}"
