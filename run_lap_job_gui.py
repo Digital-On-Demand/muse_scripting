@@ -26,14 +26,17 @@ def run_lap_job(server, pass_code, device_access_code, lap_file_path):
         data = {"pass_code": pass_code, "device_access_code": device_access_code}
         with open(lap_file_path, "rb") as f:
             files = {"lap_file": f}
-            response = requests.post(url, data=data, files=files)
+            response = requests.post(url, data=data, files=files, timeout=30)
 
         if response.status_code == 200:
             result = response.json()
             status_label.config(text=f"Job started on Muse.\nResponse: {result}")
             return True
         else:
-            error_text = response.json()
+            try:
+                error_text = response.json()
+            except Exception:
+                error_text = response.text
             status_label.config(text=f"Error {response.status_code}: {error_text}")
             return False
     except Exception as e:
@@ -50,7 +53,7 @@ def poll_status_and_log_duration(barcode):
         while True:
             time.sleep(sleep_interval)
             elapsed += sleep_interval
-            response = requests.post(url, data=data)
+            response = requests.post(url, data=data, timeout=30)
 
             if response.status_code != 200:
                 print(f"Polling error {response.status_code}: {response.text}")
@@ -73,9 +76,10 @@ def poll_status_and_log_duration(barcode):
         print(f"Polling exception: {e}")
 
 def start_job(event=None):
-    barcode, recipe_name, quantity = parse_filename(file_name)
+    user_input = barcode_entry.get().strip()
+    barcode, recipe_name, quantity = parse_filename(user_input)
     if barcode is None:
-        print(f"Invalid filename format: {file_name}")
+        status_label.config(text=f"Invalid input: {user_input}")
 
     output_folder = os.path.join(LASER_FOLDER_PATH, "Output")
     lap_file_path = None
@@ -111,7 +115,9 @@ def start_job(event=None):
         window.update()
         time.sleep(1)
 
-    success = run_lap_job(server, pass_code, DEVICE_ACCESS_CODE, lap_file_path)
+    # If quantity is None, default to 1
+    if quantity is None:
+        quantity = 1
 
     for job_num in range(quantity):
         status_label.config(text=f"Running job {job_num+1} of {quantity} for {barcode}")

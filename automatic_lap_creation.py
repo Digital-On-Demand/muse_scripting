@@ -4,7 +4,7 @@ import os
 import time
 import warnings
 from PIL import Image
-from lib import fix_image, parse_filename
+from lib import fix_image, parse_filename, get_spec_from_recipe_name
 
 # static variables
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision")
@@ -20,6 +20,16 @@ else:
     server = "https://re4.fslaser.com"
     pass_code = "Protract;Aneurism;50"
 
+def find_config_json(recipe_name):
+    adjusted_recipe_name = recipe_name.lower().replace("glass", "").replace("Glass", "").replace("laser", "").replace("Laser", "")
+    adjusted_recipe_name = ''.join(filter(lambda x: not x.isdigit(), adjusted_recipe_name))
+    for filename in os.listdir(os.path.join(LASER_FOLDER_PATH, 'Settings')):
+        if filename.startswith("settings-") and filename.endswith(".json"):
+            if adjusted_recipe_name in filename.lower():
+                #print("i found "+adjusted_recipe_name+" in "+filename.lower())
+                return os.path.join(os.path.join(LASER_FOLDER_PATH, 'Settings'), filename)
+            #print("i couldnt find "+adjusted_recipe_name+" in "+filename.lower())
+            
 def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, json_file_path, output_file_path, recipe_name):
     try:
         #set URL
@@ -39,15 +49,13 @@ def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, jso
             print(f"Attempting to center image on y-axis")
             transformation_matrix[4] = width_mm / -2
 
-            if "rocksbottom" in (recipe_name.lower()) or "glasscircle" in (recipe_name.lower()):
-                print(f"Non-rotary job, attempting to move image 25mm up")
-                transformation_matrix[5] = 25
-            elif "chug" in (recipe_name.lower()):
-                print(f"Chug job, moving image 55mm right")
-                transformation_matrix[4] = -55
-            elif "gossip" in (recipe_name.lower()):
-                print(f"Gossip job, moving image 63mm right")
-                transformation_matrix[4] = -63
+            if get_spec_from_recipe_name(recipe_name, "yTranslation"):
+                print(f"Translating image {get_spec_from_recipe_name(recipe_name, 'yTranslation')}mm")
+                transformation_matrix[5] = get_spec_from_recipe_name(recipe_name, "yTranslation")
+
+            if get_spec_from_recipe_name(recipe_name, "xTranslation"):
+                print(f"Translating image {get_spec_from_recipe_name(recipe_name, 'xTranslation')}mm")
+                transformation_matrix[4] = get_spec_from_recipe_name(recipe_name, "xTranslation")
 
             print(f"Scaling image")
             transformation_matrix[0] = .3125
@@ -67,7 +75,7 @@ def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, jso
 
             # make request
             print(f"Processing file: {input_file_path}")
-            response = requests.post(url, data=data, files=files)
+            response = requests.post(url, data=data, files=files, timeout=60)
             
             # write response to new file if successful, otherwise do some error handling
             if response.status_code == 200:
@@ -87,29 +95,40 @@ def get_standard_lap(server, pass_code, DEVICE_ACCESS_CODE, input_file_path, jso
 if __name__ == "__main__":
     # iterate through files in input folder (comment the while True for testing)
     #while True:
-        for filename in os.listdir(f"{LASER_FOLDER_PATH}\\Input"):
+        input_folder_path = os.path.join(LASER_FOLDER_PATH, "Input")
+        output_folder_path = os.path.join(LASER_FOLDER_PATH, "Output")
+        fixed_folder_path = os.path.join(LASER_FOLDER_PATH, "Fixed")
+
+        # ensure required folders exist
+        os.makedirs(input_folder_path, exist_ok=True)
+        os.makedirs(output_folder_path, exist_ok=True)
+        os.makedirs(fixed_folder_path, exist_ok=True)
+
+        for filename in os.listdir(input_folder_path):
             if filename.endswith(".png"):
                 #parse filename
                 barcode, recipe_name, quantity = parse_filename(filename)
                 if barcode is None:
                     print(f"Invalid filename format: {filename}")
-                    break
+                    continue
 
                 # dynamically get material type
-                config_json = f"settings-{recipe_name}"
+                config_json = find_config_json(recipe_name)
+                if not config_json:
+                    print(f"No configuration JSON found for recipe: {recipe_name}")
+                    continue
 
                 # dynamically set file paths
-                input_file_path = os.path.join(f"{LASER_FOLDER_PATH}\\Input", filename)
-                json_file_path = os.path.join(LASER_FOLDER_PATH, f"{config_json}.json")
-                output_folder_path = os.path.join(LASER_FOLDER_PATH, "Output")
-                fixed_folder_path = os.path.join(LASER_FOLDER_PATH, "Fixed")
+                input_file_path = os.path.join(input_folder_path, filename)
+                json_file_path = config_json
 
                 #fix the image
                 fixed_file_path = os.path.join(fixed_folder_path, filename)
                 fix_image(input_file_path, recipe_name, fixed_file_path)
 
                 # do the thing
-                output_file_path = os.path.join(output_folder_path, f"{barcode}-{recipe_name}-{quantity}.lap")
+                quantity_suffix = f"-{quantity}" if quantity is not None else ""
+                output_file_path = os.path.join(output_folder_path, f"{barcode}-{recipe_name}{quantity_suffix}.lap")
                 success = get_standard_lap(
                     server, pass_code, DEVICE_ACCESS_CODE,
                     fixed_file_path, json_file_path, output_file_path, recipe_name

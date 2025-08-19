@@ -1,0 +1,40 @@
+{
+  "chug": {
+    "rotary": true,
+    "opensTowardsChuck": true,
+    "material": "glass",
+    "taperAngle": false,
+    "xTranslation": -55
+  },
+  "gossip": {
+    "rotary": true,
+    "opensTowardsChuck": false,
+    "material": "glass",
+    "taperAngle": false,
+    "xTranslation": -64
+  },
+  "rocksBottom": {
+    "rotary": false,
+    "material": "glass",
+    "taperAngle": false,
+    "yTranslation": 25
+  },
+  "rocks": {
+    "rotary": true,
+    "material": "glass",
+    "taperAngle": false,
+    "xTranslation": -5
+  },
+  "shot": {
+    "rotary": true,
+    "opensTowardsChuck": true,
+    "material": "glass",
+    "taperAngle": false
+  },
+  "sipper": {
+    "rotary": true,
+    "material": "glass",
+    "taperAngle": false,
+    "xTranslation": 0
+  }
+}
