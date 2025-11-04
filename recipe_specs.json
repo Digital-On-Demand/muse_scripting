@@ -3,38 +3,98 @@
     "rotary": true,
     "opensTowardsChuck": true,
     "material": "glass",
-    "taperAngle": false,
-    "xTranslation": -55
+    "xTranslation": -55,
+    "artboardWidth": 2738,
+    "artboardHeight": 1275,
+    "paddingStart": 0.45,
+    "paddingEnd": 1
+  },
+  "riva": {
+    "rotary": true,
+    "opensTowardsChuck": true,
+    "material": "steel",
+    "xTranslation": -49,
+    "artboardWidth": 1350,
+    "artboardHeight": 1230
   },
   "gossip": {
     "rotary": true,
     "opensTowardsChuck": false,
     "material": "glass",
-    "taperAngle": false,
-    "xTranslation": -64
+    "xTranslation": -48,
+    "artboardWidth": 0,
+    "artboardHeight": 0
   },
   "rocksBottom": {
     "rotary": false,
     "material": "glass",
     "taperAngle": false,
-    "yTranslation": 25
+    "yTranslation": 25,
+    "artboardWidth": 900,
+    "artboardHeight": 900,
+    "paddingStart": 0.05,
+    "paddingEnd": 0.95
   },
   "rocks": {
     "rotary": true,
     "material": "glass",
     "taperAngle": false,
-    "xTranslation": -5
+    "xTranslation": 3,
+    "artboardWidth": 994,
+    "artboardHeight": 591,
+    "paddingStart": 0.1,
+    "paddingEnd": 0.9
+  },
+  "candlePosh": {
+    "rotary": true,
+    "material": "glass",
+    "taperAngle": false,
+    "xTranslation": 3,
+    "artboardWidth": 3180,
+    "artboardHeight": 591,
+    "paddingStart": 0.1,
+    "paddingEnd": 0.9
   },
   "shot": {
     "rotary": true,
     "opensTowardsChuck": true,
     "material": "glass",
-    "taperAngle": false
+    "taperAngle": false,
+    "artboardWidth": 0,
+    "artboardHeight": 0
   },
   "sipper": {
     "rotary": true,
     "material": "glass",
     "taperAngle": false,
-    "xTranslation": 0
+    "xTranslation": 0,
+    "artboardWidth": 671,
+    "artboardHeight": 255
+  },
+  "heart": {
+    "rotary": false,
+    "material": "glass",
+    "taperAngle": false,
+    "yTranslation": 25,
+    "xTranslation": -30,
+    "artboardWidth": 0,
+    "artboardHeight": 0
+  },
+  "ornament": {
+    "rotary": false,
+    "material": "glass",
+    "taperAngle": false,
+    "yTranslation": 25,
+    "artboardWidth": 0,
+    "artboardHeight": 0
+  },
+  "pilsner": {
+    "rotary": true,
+    "opensTowardsChuck": true,
+    "material": "glass",
+    "taperAngle": false,
+    "xTranslation": -16,
+    "artboardWidth": 0,
+    "artboardHeight": 0
   }
 }

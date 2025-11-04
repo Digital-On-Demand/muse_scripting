@@ -10,7 +10,7 @@ from lib import parse_filename
 # static variables
 IS_BETA = True
 LASER_FOLDER_PATH = "Z:/Shared/Muse"
-DEVICE_ACCESS_CODE = "Tribute,Snowy,22"
+DEVICE_ACCESS_CODE = "2CCF67398804"
 SLEEP_TIME = 4 #time to sleep before starting job
 
 if IS_BETA:
@@ -23,7 +23,7 @@ else:
 def run_lap_job(server, pass_code, device_access_code, lap_file_path):
     try:
         url = server + "/api/jobs/api-run-lap-job"
-        data = {"pass_code": pass_code, "device_access_code": device_access_code}
+        data = {"pass_code": pass_code, "device_id": device_access_code}
         with open(lap_file_path, "rb") as f:
             files = {"lap_file": f}
             response = requests.post(url, data=data, files=files, timeout=30)
@@ -45,7 +45,7 @@ def run_lap_job(server, pass_code, device_access_code, lap_file_path):
     
 def poll_status_and_log_duration(barcode):
     url = server + "/api/jobs/api-query-job-status"
-    data = {"pass_code": pass_code, "device_access_code": DEVICE_ACCESS_CODE}
+    data = {"pass_code": pass_code, "device_id": DEVICE_ACCESS_CODE}
     sleep_interval = 5
     elapsed = 0
 
@@ -54,13 +54,8 @@ def poll_status_and_log_duration(barcode):
             time.sleep(sleep_interval)
             elapsed += sleep_interval
             response = requests.post(url, data=data, timeout=30)
-
-            if response.status_code != 200:
-                print(f"Polling error {response.status_code}: {response.text}")
-                break
-
-            status = response.json().get("user_job_status", "").lower()
-            if status != "running":
+            statusMessage = response.json().get("user_job_status", "")
+            if statusMessage == 'idle':
                 break
 
         csv_path = os.path.join(LASER_FOLDER_PATH, "job_times.csv")
