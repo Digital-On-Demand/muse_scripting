@@ -11,8 +11,8 @@ import os
 # Resolve recipe specs file relative to this module for portability
 RECIPE_SPECS_FILE = os.path.join(os.path.dirname(__file__), "recipe_specs.json")
 DO_NOTHING = False  #disables all image manip
-WHITE_THRESHOLD = 250  # can be tweaked (0-255) - previous optimal was 250
-BLACK_THRESHOLD = 4  # can be tweaked (0-255) - previous optimal was 4
+WHITE_THRESHOLD = 253  # can be tweaked (0-255) - previous optimal was 250
+BLACK_THRESHOLD = 1  # can be tweaked (0-255) - previous optimal was 4
 OPACITY_THRESHOLD = 0  # can be tweaked (0-255) - previous optimal was 0
 ENTROPY_THRESHOLD = 2  # can be tweaked (0-255) - previous optimal was 2
 DISK_RADIUS = 4  # radius for disk used in entropy calculation - previous optimal was 4
@@ -300,6 +300,50 @@ def fix_image_cc(input_path, recipe_name, fixed_file_path):
             # Convert back to PIL Image
             fixed = Image.fromarray(data, mode='RGBA')
 
+        fixed.save(fixed_file_path)
+
+def fix_image_nothing(input_path, recipe_name, fixed_file_path):
+    """Fix image for NOTHING_Input folder - only rotation, sizing, and color inversion (no image vision processing)"""
+    with Image.open(input_path) as img:
+        if DO_NOTHING:
+            fixed = img
+        else:
+            #resize image
+            artboard_width = get_spec_from_recipe_name(recipe_name, "artboardWidth")
+            artboard_height = get_spec_from_recipe_name(recipe_name, "artboardHeight")
+            
+            if artboard_width and artboard_height and artboard_width > 0 and artboard_height > 0:
+                print(f"NOTHING_Input: Scaling image to artboard size: {artboard_width}x{artboard_height}")
+                img = img.resize((artboard_width, artboard_height), Image.Resampling.LANCZOS)
+            elif artboard_width and artboard_width > 0:
+                print(f"NOTHING_Input: Scaling image width to artboard width: {artboard_width}")
+                aspect_ratio = img.height / img.width
+                new_height = int(artboard_width * aspect_ratio)
+                img = img.resize((artboard_width, new_height), Image.Resampling.LANCZOS)
+            elif artboard_height and artboard_height > 0:
+                print(f"NOTHING_Input: Scaling image height to artboard height: {artboard_height}")
+                aspect_ratio = img.width / img.height
+                new_width = int(artboard_height * aspect_ratio)
+                img = img.resize((new_width, artboard_height), Image.Resampling.LANCZOS)
+
+            # Apply rotation and flipping
+            img = apply_rotation_and_flipping(img, recipe_name)
+
+            # Ensure 4 channel mode
+            if img.mode != 'RGBA':
+                img = img.convert('RGBA')
+
+            # Invert colors (RGB only, keep alpha channel)
+            data = np.array(img)
+            r, g, b, a = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
+            
+            # Invert RGB channels for all pixels (preserve alpha)
+            data[:,:,0] = 255 - r  # Invert red
+            data[:,:,1] = 255 - g  # Invert green
+            data[:,:,2] = 255 - b  # Invert blue
+            # Alpha channel (a) remains unchanged
+            
+            fixed = Image.fromarray(data, mode='RGBA')
         fixed.save(fixed_file_path)
 
 def parse_filename(filename):

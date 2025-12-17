@@ -3,7 +3,7 @@
     "rotary": true,
     "opensTowardsChuck": true,
     "material": "glass",
-    "xTranslation": -55,
+    "xTranslation": -70,
     "artboardWidth": 2738,
     "artboardHeight": 1275,
     "paddingStart": 0.45,
@@ -68,8 +68,8 @@
     "material": "glass",
     "taperAngle": false,
     "xTranslation": 0,
-    "artboardWidth": 671,
-    "artboardHeight": 255
+    "artboardWidth": 933,
+    "artboardHeight": 1063
   },
   "heart": {
     "rotary": false,
@@ -84,7 +84,8 @@
     "rotary": false,
     "material": "glass",
     "taperAngle": false,
-    "yTranslation": 25,
+    "xTranslation": -38,
+    "yTranslation": 26,
     "artboardWidth": 0,
     "artboardHeight": 0
   },

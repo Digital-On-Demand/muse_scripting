@@ -4,10 +4,12 @@ import os
 import time
 import warnings
 from PIL import Image
-from lib import fix_image, fix_image_cc, parse_filename, get_spec_from_recipe_name
+from lib import fix_image, fix_image_cc, fix_image_nothing, parse_filename, get_spec_from_recipe_name
 
 # static variables
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision")
+Image.MAX_IMAGE_PIXELS = None
+warnings.filterwarnings("ignore", message=".*decompression bomb.*", category=UserWarning)
 IS_BETA = False
 LASER_FOLDER_PATH = "Z:\\Shared\\Muse"
 DEVICE_ACCESS_CODE = "2CCF67398804"
@@ -119,16 +121,15 @@ def process_folder(folder_path, output_folder_path, fixed_folder_path, is_cc_inp
             input_file_path = os.path.join(folder_path, filename)
             json_file_path = config_json
 
-            #fix the image (skip for NOTHING_Input)
+            #fix the image
+            fixed_file_path = os.path.join(fixed_folder_path, filename)
             if is_nothing_input:
-                file_to_send = input_file_path
+                fix_image_nothing(input_file_path, recipe_name, fixed_file_path)
+            elif is_cc_input:
+                fix_image_cc(input_file_path, recipe_name, fixed_file_path)
             else:
-                fixed_file_path = os.path.join(fixed_folder_path, filename)
-                if is_cc_input:
-                    fix_image_cc(input_file_path, recipe_name, fixed_file_path)
-                else:
-                    fix_image(input_file_path, recipe_name, fixed_file_path)
-                file_to_send = fixed_file_path
+                fix_image(input_file_path, recipe_name, fixed_file_path)
+            file_to_send = fixed_file_path
 
             # do the thing
             quantity_suffix = f"-{quantity}" if quantity is not None else ""
