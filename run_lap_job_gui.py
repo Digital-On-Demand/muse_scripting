@@ -8,22 +8,22 @@ import csv
 from lib import parse_filename
 
 # static variables
-IS_BETA = True
+IS_BETA = False
 LASER_FOLDER_PATH = "Z:/Shared/Muse"
-DEVICE_ACCESS_CODE = "2CCF67398804"
+device_id = "2CCF67398804" #obtained from device screen
 SLEEP_TIME = 4 #time to sleep before starting job
 
 if IS_BETA:
     server = "https://beta.fslaser.com"
-    pass_code = "Whacking:Wrinkle:52"
+    pass_code = "Decoy!Retiree!25" #obtained from account info on website
 else:
     server = "https://re4.fslaser.com"
-    pass_code = "Protract;Aneurism;50"
+    pass_code = "Ignore;Crablike;37"
 
-def run_lap_job(server, pass_code, device_access_code, lap_file_path):
+def run_lap_job(server, pass_code, device_id, lap_file_path):
     try:
         url = server + "/api/jobs/api-run-lap-job"
-        data = {"pass_code": pass_code, "device_id": device_access_code}
+        data = {"pass_code": pass_code, "device_id": device_id, "soft_limit_check": True}
         with open(lap_file_path, "rb") as f:
             files = {"lap_file": f}
             response = requests.post(url, data=data, files=files, timeout=30)
@@ -45,7 +45,7 @@ def run_lap_job(server, pass_code, device_access_code, lap_file_path):
     
 def poll_status_and_log_duration(barcode):
     url = server + "/api/jobs/api-query-job-status"
-    data = {"pass_code": pass_code, "device_id": DEVICE_ACCESS_CODE}
+    data = {"pass_code": pass_code, "device_id": device_id}
     sleep_interval = 5
     elapsed = 0
 
@@ -117,11 +117,10 @@ def start_job(event=None):
     for job_num in range(quantity):
         status_label.config(text=f"Running job {job_num+1} of {quantity} for {barcode}")
         window.update()
-        success = run_lap_job(server, pass_code, DEVICE_ACCESS_CODE, lap_file_path)
+        success = run_lap_job(server, pass_code, device_id, lap_file_path)
         if success:
             poll_status_and_log_duration(barcode)
         else:
-            status_label.config(text=f"Failed job {job_num+1} for {barcode}")
             break
 
     barcode_entry.delete(0, tk.END)
