@@ -1,9 +1,29 @@
 {
+  "aliases": {
+    "glassRocksBottom": "rocksBottom",
+    "glassRocksBottomLaser": "rocksBottom",
+    "glassRocksLaser": "rocks",
+    "candlePosh8white": "rocks",
+    "HeartGLASSOrnament3x3Laser": "heart",
+    "GLASSOrnament3x3Laser": "circle",
+    "glassChug16Laser": "chug",
+    "glassChug16": "chug",
+    "glassSipper16": "sipper",
+    "glassSipperLaser": "sipper",
+    "tumblerRivaLaser": "riva",
+    "tumblerVikingLaser": "viking",
+    "tumblerHydraPeakOasis32steel": "oasis",
+    "tumblerHydraPeakFJ25steel": "foodjar",
+    "hydrapeakMini14Laser": "mini14",
+    "tumblerHydraPeakNomad32steel": "nomad",
+    "jewelryCircleSmall": "jewelryCircleSmall"
+  },
   "chug": {
     "rotary": true,
+    "mirrored": false,
     "opensTowardsChuck": true,
     "material": "glass",
-    "xTranslation": -55,
+    "xTranslation": -70,
     "artboardWidth": 2738,
     "artboardHeight": 1275,
     "paddingStart": 0.45,
@@ -11,89 +31,169 @@
   },
   "riva": {
     "rotary": true,
+    "mirrored": false,
     "opensTowardsChuck": true,
     "material": "steel",
     "xTranslation": -49,
     "artboardWidth": 1350,
     "artboardHeight": 1230
   },
+  "viking": {
+    "rotary": true,
+    "mirrored": false,
+    "opensTowardsChuck": true,
+    "material": "steel",
+    "xTranslation": -49,
+    "artboardWidth": 3090,
+    "artboardHeight": 1230
+  },
+  "oasis": {
+    "rotary": true,
+    "mirrored": false,
+    "opensTowardsChuck": true,
+    "material": "steel",
+    "xTranslation": -70
+  },
   "gossip": {
     "rotary": true,
+    "mirrored": false,
     "opensTowardsChuck": false,
     "material": "glass",
     "xTranslation": -48,
-    "artboardWidth": 0,
-    "artboardHeight": 0
+    "artboardWidth": 3600,
+    "artboardHeight": 768
   },
   "rocksBottom": {
     "rotary": false,
+    "mirrored": true,
     "material": "glass",
-    "taperAngle": false,
     "yTranslation": 25,
     "artboardWidth": 900,
     "artboardHeight": 900,
-    "paddingStart": 0.05,
-    "paddingEnd": 0.95
+    "paddingStart": 0.15,
+    "paddingEnd": 0.85
   },
   "rocks": {
     "rotary": true,
+    "mirrored": false,
     "material": "glass",
-    "taperAngle": false,
-    "xTranslation": 3,
-    "artboardWidth": 994,
-    "artboardHeight": 591,
-    "paddingStart": 0.1,
-    "paddingEnd": 0.9
-  },
-  "candlePosh": {
-    "rotary": true,
-    "material": "glass",
-    "taperAngle": false,
-    "xTranslation": 3,
-    "artboardWidth": 3180,
-    "artboardHeight": 591,
-    "paddingStart": 0.1,
-    "paddingEnd": 0.9
-  },
-  "shot": {
-    "rotary": true,
-    "opensTowardsChuck": true,
-    "material": "glass",
-    "taperAngle": false,
-    "artboardWidth": 0,
-    "artboardHeight": 0
+    "xTranslation": -2,
+    "artboardWidth": 2980,
+    "artboardHeight": 697,
+    "paddingStart": 0.25,
+    "paddingEnd": 0.75
   },
   "sipper": {
     "rotary": true,
+    "mirrored": false,
     "material": "glass",
-    "taperAngle": false,
     "xTranslation": 0,
-    "artboardWidth": 671,
-    "artboardHeight": 255
+    "artboardWidth": 2794,
+    "artboardHeight": 1179,
+    "paddingStart": 0.2,
+    "paddingEnd": 0.65
   },
   "heart": {
     "rotary": false,
+    "mirrored": false,
     "material": "glass",
-    "taperAngle": false,
     "yTranslation": 25,
     "xTranslation": -30,
     "artboardWidth": 0,
     "artboardHeight": 0
   },
-  "ornament": {
+  "circle": {
     "rotary": false,
+    "mirrored": false,
     "material": "glass",
-    "taperAngle": false,
-    "yTranslation": 25,
+    "xTranslation": -38,
+    "yTranslation": 26,
     "artboardWidth": 0,
     "artboardHeight": 0
   },
   "pilsner": {
     "rotary": true,
+    "mirrored": false,
     "opensTowardsChuck": true,
     "material": "glass",
-    "taperAngle": false,
     "xTranslation": -16,
+    "artboardWidth": 0,
+    "artboardHeight": 0
+  },
+  "foodjar": {
+    "rotary": true,
+    "mirrored": false,
+    "opensTowardsChuck": false,
+    "material": "steel",
+    "xTranslation": -16
+  },
+  "mini14": {
+    "rotary": true,
+    "mirrored": false,
+    "opensTowardsChuck": false,
+    "material": "steel",
+    "xTranslation": -32,
+    "artboardWidth": 850,
+    "artboardHeight": 600
+  },
+  "nomad": {
+    "rotary": true,
+    "mirrored": false,
+    "opensTowardsChuck": true,
+    "material": "steel",
+    "xTranslation": -32
+  },
+  "jewelryCircleSmall": {
+    "rotary": false,
+    "mirrored": true,
+    "material": "steel",
+    "xTranslation": 0.25,
+    "yTranslation": -4,
+    "artboardWidth": 142,
+    "artboardHeight": 142
+  }, 
+   "jewelryHeart": {
+    "rotary": false,
+    "mirrored": true,
+    "material": "steel",
+    "xTranslation": -3,
+    "yTranslation": -1,
+    "artboardWidth": 142,
+    "artboardHeight": 142
+  },
+  "jewelryRectangleSmall": {
+    "rotary": false,
+    "mirrored": true,
+    "material": "steel",
+    "xTranslation": 0,
+    "yTranslation": 0,
+    "artboardWidth": 413,
+    "artboardHeight": 35
+  },
+  "jewelryRectangleLarge": {
+    "rotary": false,
+    "mirrored": true,
+    "material": "steel",
+    "xTranslation": 0,
+    "yTranslation": 0,
+    "artboardWidth": 35,
+    "artboardHeight": 413
+  },
+  "jewelryDogTag": {
+    "rotary": false,
+    "mirrored": true,
+    "material": "steel",
+    "xTranslation": -3,
+    "yTranslation": 9,
+    "artboardWidth": 236,
+    "artboardHeight": 413
+  },
+  "jewelryBar": {
+    "rotary": false,
+    "mirrored": true,
+    "material": "steel",
+    "xTranslation": 2,
+    "yTranslation": 9,
     "artboardWidth": 0,
     "artboardHeight": 0
   }

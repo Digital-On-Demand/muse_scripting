@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import os
 import time
+from datetime import date
 import requests
 from PIL import Image, ImageTk
 import csv
@@ -58,14 +59,14 @@ def poll_status_and_log_duration(barcode):
             if statusMessage == 'idle':
                 break
 
-        csv_path = os.path.join(LASER_FOLDER_PATH, "job_times.csv")
+        csv_path = os.path.join(LASER_FOLDER_PATH, "log.csv")
         write_header = not os.path.exists(csv_path)
 
         with open(csv_path, mode='a', newline='') as file:
             writer = csv.writer(file)
             if write_header:
-                writer.writerow(["barcode", "elapsed_time_seconds"])
-            writer.writerow([barcode, elapsed])
+                writer.writerow(["barcode", "elapsed_time_seconds", "date"])
+            writer.writerow([barcode, elapsed, date.today().isoformat()])
 
     except Exception as e:
         print(f"Polling exception: {e}")
