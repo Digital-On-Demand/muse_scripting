@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image
 import json
 import os
+import shutil
 import requests
 import time
 import re
@@ -137,9 +138,24 @@ def get_standard_lap(server, pass_code, device_access_code, input_file_path, jso
         return False
 
 
+def processed_folder_for_input(folder_path):
+    """Map Input / CC_Input to their *_Processed siblings under the same parent."""
+    base = os.path.basename(os.path.normpath(folder_path))
+    parent = os.path.dirname(os.path.normpath(folder_path))
+    mapping = {
+        "Input": "Input_Processed",
+        "CC_Input": "CC_Input_Processed",
+    }
+    processed_name = mapping.get(base)
+    if not processed_name:
+        return None
+    return os.path.join(parent, processed_name)
+
+
 def process_folder(folder_path, output_folder_path, fixed_folder_path, 
                    laser_folder_path=None, server=None, pass_code=None, 
-                   device_access_code=None, sleep_time=1, use_cc_input_logic=False):
+                   device_access_code=None, sleep_time=1, use_cc_input_logic=False,
+                   processed_folder_path=None):
     """
     Process files from a specific input folder.
     Applies image fixes and creates LAP files for each PNG found.
@@ -152,6 +168,9 @@ def process_folder(folder_path, output_folder_path, fixed_folder_path,
         pass_code = DEFAULT_PASS_CODE
     if device_access_code is None:
         device_access_code = DEVICE_ACCESS_CODE
+
+    if processed_folder_path is None:
+        processed_folder_path = processed_folder_for_input(folder_path)
     
     png_filenames = [fn for fn in os.listdir(folder_path) if fn.lower().endswith(".png")]
     multi_overrides = build_overrides_for_multi_decoration(folder_path, png_filenames)
@@ -210,9 +229,34 @@ def process_folder(folder_path, output_folder_path, fixed_folder_path,
                 file_to_send, json_file_path, output_file_path, transformation_matrix
             )
 
+            if success and processed_folder_path:
+                os.makedirs(processed_folder_path, exist_ok=True)
+                processed_path = os.path.join(processed_folder_path, filename)
+                try:
+                    shutil.move(input_file_path, processed_path)
+                    print(f"Moved input to {processed_path}")
+                except Exception as e:
+                    print(f"Could not move input to processed folder: {e}")
+
             # Sleep a little
             print(f"Sleeping for {sleep_time} seconds before next file scan...")
             time.sleep(sleep_time)
+
+
+def get_recipe_spec_entry(recipe_name):
+    """Return the full spec dict for a recipe, or None."""
+    if not recipe_name:
+        return None
+    normalized_name = normalize_recipe_name(recipe_name)
+    if not normalized_name:
+        return None
+    normalized_lower = normalized_name.lower()
+    for key, value in RECIPE_SPECS.items():
+        if key == "aliases":
+            continue
+        if key.lower() == normalized_lower:
+            return value
+    return None
 
 
 def get_spec_from_recipe_name(recipe_name, spec):
@@ -220,22 +264,55 @@ def get_spec_from_recipe_name(recipe_name, spec):
     Get a specific spec value from recipe specs using normalized recipe name.
     Uses EXACT match on the normalized recipe name to find the spec entry.
     """
-    if not recipe_name:
+    entry = get_recipe_spec_entry(recipe_name)
+    if entry is None:
         return None
-    
-    # Normalize recipe name first (applies aliases to get canonical name)
-    normalized_name = normalize_recipe_name(recipe_name)
-    if not normalized_name:
-        return None
-    
-    # Look up specs using exact match (case-insensitive) on normalized name
-    normalized_lower = normalized_name.lower()
-    for key, value in RECIPE_SPECS.items():
-        if key == "aliases":
-            continue
-        if key.lower() == normalized_lower:
-            return value.get(spec)
-    return None
+    return entry.get(spec)
+
+
+def get_rotation_degrees(recipe_name):
+    """
+    Rotation in degrees: negative = counter-clockwise, positive = clockwise, 0 = none.
+    Falls back to deprecated rotary / opensTowardsChuck when rotation is omitted.
+    """
+    entry = get_recipe_spec_entry(recipe_name)
+    if not entry:
+        return 0
+    if "rotation" in entry:
+        return int(entry["rotation"])
+    if not entry.get("rotary"):
+        return 0
+    if entry.get("opensTowardsChuck"):
+        return 90
+    return -90
+
+
+def get_mirror_y(recipe_name):
+    """
+    Mirror left-right (flip horizontally) when True.
+    Falls back to deprecated mirrored / rotary when mirrorY is omitted.
+    """
+    entry = get_recipe_spec_entry(recipe_name)
+    if not entry:
+        return False
+    if "mirrorY" in entry:
+        return bool(entry["mirrorY"])
+    if entry.get("rotary"):
+        return False
+    return not entry.get("mirrored")
+
+
+def get_trim_ends(recipe_name):
+    """
+    Trim transparent padding from left and right edges after sizing.
+    Falls back to deprecated rotary when trimEnds is omitted.
+    """
+    entry = get_recipe_spec_entry(recipe_name)
+    if not entry:
+        return False
+    if "trimEnds" in entry:
+        return bool(entry["trimEnds"])
+    return bool(entry.get("rotary"))
 
 # ============================================================================
 # Image Processing Functions - Modular Steps
@@ -571,8 +648,8 @@ def sizing_and_padding_cc(img, recipe_name):
     y_offset = int(range_start_y + (content_height - new_h) // 2)
     padded_img.paste(img, (x_offset, y_offset), img)
 
-    # Step 4: remove left and right transparent whitespace (rotary only)
-    if get_spec_from_recipe_name(recipe_name, "rotary"):
+    # Step 4: remove left and right transparent whitespace when trimEnds is set
+    if get_trim_ends(recipe_name):
         padded_img = _trim_left_transparent(padded_img)
         padded_img = _trim_right_transparent(padded_img)
     return padded_img
@@ -636,14 +713,14 @@ def sizing_and_padding_input(img, recipe_name):
     y_offset = (artboard_height - ih) // 2
     canvas.paste(img, (x_offset, y_offset), img)
 
-    # Step 4: remove left and right transparent whitespace for rotary
-    if get_spec_from_recipe_name(recipe_name, "rotary"):
+    # Step 4: remove left and right transparent whitespace when trimEnds is set
+    if get_trim_ends(recipe_name):
         canvas = _trim_left_transparent(canvas)
         canvas = _trim_right_transparent(canvas)
     return canvas
 
 
-def apply_image_color_processing(img, recipe_name, contrast_reduction=150):
+def apply_image_color_processing(img, recipe_name, contrast_reduction=50):
     """
     Function 2: Image Color Processing
     Invert the colors of the image and reduce contrast by a specified margin.
@@ -681,23 +758,20 @@ def apply_image_color_processing(img, recipe_name, contrast_reduction=150):
 def apply_image_metadata_manipulation(img, recipe_name):
     """
     Function 3: Image Metadata Manipulation
-    Apply rotation and flipping transformations based on recipe specs.
-    - Non-rotary: Flip horizontally unless mirrored is true (art already mirrored)
-    - Rotary: Rotate based on opensTowardsChuck spec
+    Apply mirrorY (left-right flip) and rotation from recipe specs.
+    rotation: degrees, negative = counter-clockwise, positive = clockwise.
     """
-    if not get_spec_from_recipe_name(recipe_name, "rotary"):
-        if get_spec_from_recipe_name(recipe_name, "mirrored"):
-            print("Non-rotary | mirrored spec set, skipping horizontal flip")
-        else:
-            print("Non-rotary | Flipping image horizontally")
-            img = img.transpose(Image.FLIP_LEFT_RIGHT)
-    else:
-        if get_spec_from_recipe_name(recipe_name, "opensTowardsChuck"):
-            print("Opens towards chuck | Rotating image 270 degrees")
-            img = img.rotate(270, expand=True)
-        else:
-            print("Opens away from chuck | Rotating image 90 degrees")
-            img = img.rotate(90, expand=True)
+    if get_mirror_y(recipe_name):
+        print("mirrorY | Flipping image horizontally")
+        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+
+    rotation = get_rotation_degrees(recipe_name)
+    if rotation:
+        # PIL rotates counter-clockwise for positive angles
+        pil_angle = -rotation
+        direction = "counter-clockwise" if rotation < 0 else "clockwise"
+        print(f"rotation {rotation}° ({direction}) | PIL rotate({pil_angle})")
+        img = img.rotate(pil_angle, expand=True)
     return img
 
 

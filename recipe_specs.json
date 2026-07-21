@@ -11,17 +11,19 @@
     "glassSipper16": "sipper",
     "glassSipperLaser": "sipper",
     "tumblerRivaLaser": "riva",
-    "tumblerVikingLaser": "viking",
+    "tumblerViking20steel": "viking",
     "tumblerHydraPeakOasis32steel": "oasis",
     "tumblerHydraPeakFJ25steel": "foodjar",
-    "hydrapeakMini14Laser": "mini14",
+    "waterbottleHydraPeakMini20steel": "mini20",
+    "waterbottleHydraPeakMini14steel": "mini14",
     "tumblerHydraPeakNomad32steel": "nomad",
-    "jewelryCircleSmall": "jewelryCircleSmall"
+    "jewelryCircleSmall": "jewelryCircleSmall",
+    "camelbak": "camelbak"
   },
   "chug": {
-    "rotary": true,
-    "mirrored": false,
-    "opensTowardsChuck": true,
+    "rotation": 90,
+    "mirrorY": false,
+    "trimEnds": true,
     "material": "glass",
     "xTranslation": -70,
     "artboardWidth": 2738,
@@ -30,42 +32,52 @@
     "paddingEnd": 1
   },
   "riva": {
-    "rotary": true,
-    "mirrored": false,
-    "opensTowardsChuck": true,
+    "rotation": 90,
+    "mirrorY": false,
+    "trimEnds": true,
     "material": "steel",
     "xTranslation": -49,
     "artboardWidth": 1350,
     "artboardHeight": 1230
   },
   "viking": {
-    "rotary": true,
-    "mirrored": false,
-    "opensTowardsChuck": true,
+    "rotation": 90,
+    "mirrorY": false,
+    "trimEnds": true,
     "material": "steel",
     "xTranslation": -49,
     "artboardWidth": 3090,
     "artboardHeight": 1230
   },
   "oasis": {
-    "rotary": true,
-    "mirrored": false,
-    "opensTowardsChuck": true,
+    "rotation": 90,
+    "mirrorY": false,
+    "trimEnds": false,
     "material": "steel",
-    "xTranslation": -70
+    "xTranslation": -50,
+    "artboardWidth": 600,
+    "artboardHeight": 1000
+  },
+  "camelbak": {
+    "rotation": 270,
+    "mirrorY": false,
+    "trimEnds": true,
+    "material": "steel",
+    "xTranslation": -39
   },
   "gossip": {
-    "rotary": true,
-    "mirrored": false,
-    "opensTowardsChuck": false,
+    "rotation": -90,
+    "mirrorY": false,
+    "trimEnds": true,
     "material": "glass",
     "xTranslation": -48,
     "artboardWidth": 3600,
     "artboardHeight": 768
   },
   "rocksBottom": {
-    "rotary": false,
-    "mirrored": true,
+    "rotation": 0,
+    "mirrorY": true,
+    "trimEnds": false,
     "material": "glass",
     "yTranslation": 25,
     "artboardWidth": 900,
@@ -74,18 +86,20 @@
     "paddingEnd": 0.85
   },
   "rocks": {
-    "rotary": true,
-    "mirrored": false,
+    "rotation": -90,
+    "mirrorY": false,
+    "trimEnds": true,
     "material": "glass",
     "xTranslation": -2,
     "artboardWidth": 2980,
     "artboardHeight": 697,
-    "paddingStart": 0.25,
-    "paddingEnd": 0.75
+    "paddingStart": 0.2,
+    "paddingEnd": 0.8
   },
   "sipper": {
-    "rotary": true,
-    "mirrored": false,
+    "rotation": -90,
+    "mirrorY": false,
+    "trimEnds": true,
     "material": "glass",
     "xTranslation": 0,
     "artboardWidth": 2794,
@@ -94,8 +108,9 @@
     "paddingEnd": 0.65
   },
   "heart": {
-    "rotary": false,
-    "mirrored": false,
+    "rotation": 0,
+    "mirrorY": true,
+    "trimEnds": false,
     "material": "glass",
     "yTranslation": 25,
     "xTranslation": -30,
@@ -103,8 +118,9 @@
     "artboardHeight": 0
   },
   "circle": {
-    "rotary": false,
-    "mirrored": false,
+    "rotation": 0,
+    "mirrorY": true,
+    "trimEnds": false,
     "material": "glass",
     "xTranslation": -38,
     "yTranslation": 26,
@@ -112,58 +128,68 @@
     "artboardHeight": 0
   },
   "pilsner": {
-    "rotary": true,
-    "mirrored": false,
-    "opensTowardsChuck": true,
+    "rotation": 90,
+    "mirrorY": false,
+    "trimEnds": true,
     "material": "glass",
     "xTranslation": -16,
     "artboardWidth": 0,
     "artboardHeight": 0
   },
   "foodjar": {
-    "rotary": true,
-    "mirrored": false,
-    "opensTowardsChuck": false,
+    "rotation": -90,
+    "mirrorY": false,
+    "trimEnds": true,
     "material": "steel",
     "xTranslation": -16
   },
   "mini14": {
-    "rotary": true,
-    "mirrored": false,
-    "opensTowardsChuck": false,
+    "rotation": -90,
+    "mirrorY": false,
     "material": "steel",
-    "xTranslation": -32,
-    "artboardWidth": 850,
-    "artboardHeight": 600
+    "xTranslation": -55,
+    "artboardWidth": 459,
+    "artboardHeight": 950
+  },
+  "mini20": {
+    "rotation": -90,
+    "mirrorY": false,
+    "material": "steel",
+    "xTranslation": -55,
+    "artboardWidth": 459,
+    "artboardHeight": 950
   },
   "nomad": {
-    "rotary": true,
-    "mirrored": false,
-    "opensTowardsChuck": true,
+    "rotation": 90,
+    "mirrorY": false,
+    "trimEnds": false,
     "material": "steel",
-    "xTranslation": -32
+    "xTranslation": -36
   },
   "jewelryCircleSmall": {
-    "rotary": false,
-    "mirrored": true,
+    "rotation": 0,
+    "mirrorY": false,
+    "trimEnds": false,
     "material": "steel",
     "xTranslation": 0.25,
     "yTranslation": -4,
     "artboardWidth": 142,
     "artboardHeight": 142
-  }, 
-   "jewelryHeart": {
-    "rotary": false,
-    "mirrored": true,
+  },
+  "jewelryHeart": {
+    "rotation": 0,
+    "mirrorY": false,
+    "trimEnds": false,
     "material": "steel",
     "xTranslation": -3,
-    "yTranslation": -1,
+    "yTranslation": -5,
     "artboardWidth": 142,
     "artboardHeight": 142
   },
   "jewelryRectangleSmall": {
-    "rotary": false,
-    "mirrored": true,
+    "rotation": 0,
+    "mirrorY": false,
+    "trimEnds": false,
     "material": "steel",
     "xTranslation": 0,
     "yTranslation": 0,
@@ -171,8 +197,9 @@
     "artboardHeight": 35
   },
   "jewelryRectangleLarge": {
-    "rotary": false,
-    "mirrored": true,
+    "rotation": 0,
+    "mirrorY": false,
+    "trimEnds": false,
     "material": "steel",
     "xTranslation": 0,
     "yTranslation": 0,
@@ -180,8 +207,9 @@
     "artboardHeight": 413
   },
   "jewelryDogTag": {
-    "rotary": false,
-    "mirrored": true,
+    "rotation": 0,
+    "mirrorY": false,
+    "trimEnds": false,
     "material": "steel",
     "xTranslation": -3,
     "yTranslation": 9,
@@ -189,8 +217,9 @@
     "artboardHeight": 413
   },
   "jewelryBar": {
-    "rotary": false,
-    "mirrored": true,
+    "rotation": 0,
+    "mirrorY": false,
+    "trimEnds": false,
     "material": "steel",
     "xTranslation": 2,
     "yTranslation": 9,
