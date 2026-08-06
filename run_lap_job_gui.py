@@ -120,7 +120,7 @@ def start_job(event=None):
         window.update()
         success = run_lap_job(server, pass_code, device_id, lap_file_path)
         if success:
-            poll_status_and_log_duration(barcode)
+            poll_status_and_log_duration(os.path.basename(lap_file_path))
         else:
             break
 
