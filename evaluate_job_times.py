@@ -4,6 +4,7 @@ from collections import defaultdict
 from statistics import median, mean
 from lib import parse_filename
 
+#make log go to c and z
 # Mode: "print" (current console output) or "csv" (export summary CSV)
 MODE = "csv"
 # When MODE == "csv", write just: recipe_name, mean, median

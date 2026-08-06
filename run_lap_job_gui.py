@@ -59,7 +59,7 @@ def poll_status_and_log_duration(barcode):
             if statusMessage == 'idle':
                 break
 
-        csv_path = os.path.join(LASER_FOLDER_PATH, "log.csv")
+        csv_path = r"C:\log.csv"
         write_header = not os.path.exists(csv_path)
 
         with open(csv_path, mode='a', newline='') as file:

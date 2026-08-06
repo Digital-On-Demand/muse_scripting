@@ -11,11 +11,13 @@
     "glassSipper16": "sipper",
     "glassSipperLaser": "sipper",
     "tumblerRivaLaser": "riva",
+    "tumblerTUNDRA30steel": "tundra30",
     "tumblerViking20steel": "viking",
     "tumblerHydraPeakOasis32steel": "oasis",
     "tumblerHydraPeakFJ25steel": "foodjar",
     "waterbottleHydraPeakMini20steel": "mini20",
     "waterbottleHydraPeakMini14steel": "mini14",
+    "waterbottleHydraPeakMicro7steel": "micro7",
     "tumblerHydraPeakNomad32steel": "nomad",
     "jewelryCircleSmall": "jewelryCircleSmall",
     "camelbak": "camelbak"
@@ -39,6 +41,15 @@
     "xTranslation": -49,
     "artboardWidth": 1350,
     "artboardHeight": 1230
+  },
+  "tundra30": {
+    "rotation": 90,
+    "mirrorY": false,
+    "trimEnds": true,
+    "material": "steel",
+    "xTranslation": -49,
+    "artboardWidth": 3634,
+    "artboardHeight": 850
   },
   "viking": {
     "rotation": 90,
@@ -158,6 +169,14 @@
     "xTranslation": -55,
     "artboardWidth": 459,
     "artboardHeight": 950
+  },
+  "micro7": {
+    "rotation": -90,
+    "mirrorY": false,
+    "material": "steel",
+    "xTranslation": 1,
+    "artboardWidth": 472,
+    "artboardHeight": 472
   },
   "nomad": {
     "rotation": 90,
