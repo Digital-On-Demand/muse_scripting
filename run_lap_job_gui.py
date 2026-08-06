@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import os
 import time
-from datetime import date
+from datetime import datetime
 import requests
 from PIL import Image, ImageTk
 import csv
@@ -66,7 +66,7 @@ def poll_status_and_log_duration(barcode):
             writer = csv.writer(file)
             if write_header:
                 writer.writerow(["barcode", "elapsed_time_seconds", "date"])
-            writer.writerow([barcode, elapsed, date.today().isoformat()])
+            writer.writerow([barcode, elapsed, datetime.now().isoformat(timespec="seconds")])
 
     except Exception as e:
         print(f"Polling exception: {e}")
