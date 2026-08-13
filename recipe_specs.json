@@ -15,6 +15,7 @@
     "tumblerViking20steel": "viking",
     "tumblerHydraPeakOasis32steel": "oasis",
     "tumblerHydraPeakFJ25steel": "foodjar",
+    "waterbottleHydraPeakRoamer32steel": "roamer",
     "waterbottleHydraPeakMini20steel": "mini20",
     "waterbottleHydraPeakMini14steel": "mini14",
     "waterbottleHydraPeakMicro7steel": "micro7",
@@ -47,7 +48,7 @@
     "mirrorY": false,
     "trimEnds": true,
     "material": "steel",
-    "xTranslation": -49,
+    "xTranslation": -66,
     "artboardWidth": 3634,
     "artboardHeight": 850
   },
@@ -68,6 +69,15 @@
     "xTranslation": -50,
     "artboardWidth": 600,
     "artboardHeight": 1000
+  },
+  "roamer": {
+    "rotation": 90,
+    "mirrorY": false,
+    "trimEnds": false,
+    "material": "steel",
+    "xTranslation": -50,
+    "artboardWidth": 900,
+    "artboardHeight": 900
   },
   "camelbak": {
     "rotation": 270,

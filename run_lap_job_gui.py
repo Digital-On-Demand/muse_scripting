@@ -10,7 +10,7 @@ from lib import parse_filename
 
 # static variables
 IS_BETA = False
-LASER_FOLDER_PATH = "Z:/Shared/Muse"
+LASER_FOLDER_PATH = "Y:/Shared/Muse"
 device_id = "2CCF67398804" #obtained from device screen
 SLEEP_TIME = 4 #time to sleep before starting job
 
@@ -77,7 +77,7 @@ def start_job(event=None):
     if barcode is None:
         status_label.config(text=f"Invalid input: {user_input}")
 
-    output_folder = os.path.join(LASER_FOLDER_PATH, "Output")
+    output_folder = os.path.join(LASER_FOLDER_PATH, "Artwork")
     lap_file_path = None
 
     fixed_folder = os.path.join(LASER_FOLDER_PATH, "Fixed")
