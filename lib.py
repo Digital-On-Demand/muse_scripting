@@ -6,6 +6,7 @@ import shutil
 import requests
 import time
 import re
+from datetime import datetime
 
 from multi_decoration import build_overrides_for_multi_decoration
 
@@ -35,7 +36,8 @@ def _load_recipe_specs():
 RECIPE_SPECS = _load_recipe_specs()
 
 # Configuration constants (can be overridden by callers)
-LASER_FOLDER_PATH = "Z:\\Shared\\Muse"
+LASER_FOLDER_PATH = "Y:\\Shared\\Muse"
+SETTINGS_FOLDER_PATH = "C:\\Musery\\settings"
 DEVICE_ACCESS_CODE = "2CCF67398804"
 IS_BETA = False
 
@@ -68,13 +70,13 @@ def normalize_recipe_name(recipe_name):
     return recipe_name
 
 
-def find_config_json(recipe_name, laser_folder_path=None):
+def find_config_json(recipe_name, settings_path=None):
     """
     Find the configuration JSON file for a given recipe name.
     Uses normalized recipe name from aliases to find matching settings file.
     """
-    if laser_folder_path is None:
-        laser_folder_path = LASER_FOLDER_PATH
+    if settings_path is None:
+        settings_path = SETTINGS_FOLDER_PATH
     
     # Normalize recipe name using aliases
     normalized_name = normalize_recipe_name(recipe_name)
@@ -84,7 +86,6 @@ def find_config_json(recipe_name, laser_folder_path=None):
     # Clean up the normalized name for file matching
     search_name = normalized_name.lower()
     
-    settings_path = os.path.join(laser_folder_path, 'Settings')
     if not os.path.exists(settings_path):
         return None
     
@@ -96,12 +97,13 @@ def find_config_json(recipe_name, laser_folder_path=None):
     return None
 
 
-def get_standard_lap(server, pass_code, device_access_code, input_file_path, json_file_path, output_file_path, transformation_matrix):
+def get_standard_lap(server, pass_code, device_access_code, input_file_path, json_file_path, output_file_path, transformation_matrix, log_filename=None):
     """
     Create a standard PNG LAP file by sending image and config to the server.
     Uses the provided transformation matrix (calculated during image fixing).
     Returns True if successful, False otherwise.
     """
+    log_name = log_filename or input_file_path
     try:
         # Set URL
         url = f"{server}/api/jobs/standard-png-lap"
@@ -118,24 +120,35 @@ def get_standard_lap(server, pass_code, device_access_code, input_file_path, jso
                 "json_file": json_file,
             }
 
-            # Make request
-            print(f"Processing file: {input_file_path}")
+            _log_job(log_name, "request sent to server")
             response = requests.post(url, data=data, files=files, timeout=60)
-            
-            # Write response to new file if successful, otherwise do some error handling
+            _log_job(log_name, "server sent response")
+
             if response.status_code == 200:
-                print("Server responded successfully")
                 with open(output_file_path, "wb") as f:
                     f.write(response.content)
-                print(f"Successfully created LAP file at: {os.path.abspath(output_file_path)}")
                 return True
-            else:
-                print(f"Error: Server responded with status code {response.status_code}")
-                print("Raw response text:", response.text)
-                return False
-    except Exception as e:
-        print(f"An error occurred: {e}")
+            return False
+    except Exception:
         return False
+
+
+def _move_input_file(src_path, dest_folder, label, overwrite=False):
+    """Move an input file into dest_folder."""
+    if not dest_folder or not src_path or not os.path.exists(src_path):
+        return
+    try:
+        os.makedirs(dest_folder, exist_ok=True)
+        dest_path = os.path.join(dest_folder, os.path.basename(src_path))
+        if os.path.exists(dest_path):
+            if overwrite:
+                os.remove(dest_path)
+            else:
+                stem, ext = os.path.splitext(os.path.basename(src_path))
+                dest_path = os.path.join(dest_folder, f"{stem}-{int(time.time())}{ext}")
+        shutil.move(src_path, dest_path)
+    except Exception:
+        return
 
 
 def processed_folder_for_input(folder_path):
@@ -152,16 +165,21 @@ def processed_folder_for_input(folder_path):
     return os.path.join(parent, processed_name)
 
 
+def _log_job(filename, status):
+    stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    name = os.path.splitext(os.path.basename(filename))[0]
+    print(f"[{stamp}] - {name} - {status}", flush=True)
+
+
 def process_folder(folder_path, output_folder_path, fixed_folder_path, 
-                   laser_folder_path=None, server=None, pass_code=None, 
+                   server=None, pass_code=None, 
                    device_access_code=None, sleep_time=1, use_cc_input_logic=False,
-                   processed_folder_path=None):
+                   processed_folder_path=None, failed_folder_path=None):
     """
     Process files from a specific input folder.
     Applies image fixes and creates LAP files for each PNG found.
+    Successes go to processed_folder_path; failures go to failed_folder_path.
     """
-    if laser_folder_path is None:
-        laser_folder_path = LASER_FOLDER_PATH
     if server is None:
         server = DEFAULT_SERVER
     if pass_code is None:
@@ -176,10 +194,13 @@ def process_folder(folder_path, output_folder_path, fixed_folder_path,
     multi_overrides = build_overrides_for_multi_decoration(folder_path, png_filenames)
 
     for filename in png_filenames:
+        input_file_path = os.path.join(folder_path, filename)
+        try:
             # Parse filename
             barcode, recipe_name, quantity = parse_filename(filename)
             if barcode is None:
-                print(f"Invalid filename format: {filename}")
+                _move_input_file(input_file_path, failed_folder_path, "Failed", overwrite=True)
+                _log_job(filename, "Failed, moved to Failed")
                 continue
 
             # Apply multi-decoration override when present (rocks glasses .1/.2 pairs)
@@ -199,13 +220,12 @@ def process_folder(folder_path, output_folder_path, fixed_folder_path,
                     fixed_filename = filename
 
             # Find config JSON
-            config_json = find_config_json(effective_recipe, laser_folder_path)
+            config_json = find_config_json(effective_recipe)
             if not config_json:
-                print(f"No configuration JSON found for recipe: {effective_recipe}")
+                _move_input_file(input_file_path, failed_folder_path, "Failed", overwrite=True)
+                _log_job(filename, "Failed, moved to Failed")
                 continue
 
-            # Set file paths
-            input_file_path = os.path.join(folder_path, filename)
             json_file_path = config_json
 
             # Fix the image and get transformation matrix
@@ -216,6 +236,7 @@ def process_folder(folder_path, output_folder_path, fixed_folder_path,
                 fixed_file_path,
                 use_cc_input_logic=use_cc_input_logic,
             )
+            _log_job(filename, "image fixed and moved to Fixed")
             file_to_send = fixed_file_path
 
             # Create LAP file
@@ -226,21 +247,22 @@ def process_folder(folder_path, output_folder_path, fixed_folder_path,
             )
             success = get_standard_lap(
                 server, pass_code, device_access_code,
-                file_to_send, json_file_path, output_file_path, transformation_matrix
+                file_to_send, json_file_path, output_file_path, transformation_matrix,
+                log_filename=filename,
             )
 
-            if success and processed_folder_path:
-                os.makedirs(processed_folder_path, exist_ok=True)
-                processed_path = os.path.join(processed_folder_path, filename)
-                try:
-                    shutil.move(input_file_path, processed_path)
-                    print(f"Moved input to {processed_path}")
-                except Exception as e:
-                    print(f"Could not move input to processed folder: {e}")
+            if success:
+                _move_input_file(input_file_path, processed_folder_path, "Processed")
+                _log_job(filename, "moved to Processed")
+            else:
+                _move_input_file(input_file_path, failed_folder_path, "Failed", overwrite=True)
+                _log_job(filename, "Failed, moved to Failed")
 
-            # Sleep a little
-            print(f"Sleeping for {sleep_time} seconds before next file scan...")
-            time.sleep(sleep_time)
+            if sleep_time:
+                time.sleep(sleep_time)
+        except Exception:
+            _move_input_file(input_file_path, failed_folder_path, "Failed", overwrite=True)
+            _log_job(filename, "Failed, moved to Failed")
 
 
 def get_recipe_spec_entry(recipe_name):
@@ -458,10 +480,6 @@ def _trim_solid_background(img, tolerance=10, max_foreground_fraction=0.005):
     if top <= min_change and (h - bottom) <= min_change and left <= min_change and (w - right) <= min_change:
         return img
 
-    print(
-        f"Muse/Input | trimming solid background from "
-        f"({w}x{h}) -> ({right-left}x{bottom-top})"
-    )
     return img.crop((left, top, right, bottom))
 
 def sizing_and_padding(img, recipe_name):
@@ -483,7 +501,6 @@ def sizing_and_padding_cc(img, recipe_name):
     artboard_height = get_spec_from_recipe_name(recipe_name, "artboardHeight")
 
     if not artboard_width or not artboard_height or artboard_width <= 0 or artboard_height <= 0:
-        print("No valid artboard dimensions specified, skipping resize")
         return img
 
     padding_start = get_spec_from_recipe_name(recipe_name, "paddingStart")
@@ -495,7 +512,6 @@ def sizing_and_padding_cc(img, recipe_name):
     # Step 1: Trim to content only (no encroachment on real data)
     img = _trim_to_content(img)
     if img.width <= 0 or img.height <= 0:
-        print("Image has no content after trim, skipping resize")
         return img
 
     # Step 2: Content area and scale (padding does not affect scale)
@@ -504,16 +520,10 @@ def sizing_and_padding_cc(img, recipe_name):
         range_start_y = artboard_height * padding_start
         content_width = artboard_width
         content_height = available_height
-        print(
-            f"CC Input | content area {padding_start*100:.0f}%-{padding_end*100:.0f}% "
-            f"height: {artboard_width}x{artboard_height} artboard, "
-            f"content band height {available_height:.0f}"
-        )
     else:
         range_start_y = 0
         content_width = artboard_width
         content_height = artboard_height
-        print(f"CC Input | scaling to full artboard: {artboard_width}x{artboard_height}")
 
     scale = min(content_width / img.width, content_height / img.height)
     new_width = int(round(img.width * scale))
@@ -540,7 +550,6 @@ def sizing_and_padding_input(img, recipe_name):
     artboard_height = get_spec_from_recipe_name(recipe_name, "artboardHeight")
 
     if not artboard_width or not artboard_height or artboard_width <= 0 or artboard_height <= 0:
-        print("No valid artboard dimensions specified, skipping canvas adjust")
         return img
 
     if img.mode != "RGBA":
@@ -548,7 +557,6 @@ def sizing_and_padding_input(img, recipe_name):
 
     # Fast path: exactly correct size
     if img.width == artboard_width and img.height == artboard_height:
-        print("Muse/Input | image already matches artboard size")
         return img
 
     # Step 1: Try to remove obvious solid-background whitespace (top/bottom/left/right)
@@ -557,7 +565,6 @@ def sizing_and_padding_input(img, recipe_name):
 
     iw, ih = img.width, img.height
     if iw <= 0 or ih <= 0:
-        print("Muse/Input | image has no content after trim, skipping resize")
         return img
 
     # Step 2: Uniformly scale (up or down) to fit within artboard while
@@ -566,18 +573,10 @@ def sizing_and_padding_input(img, recipe_name):
     if abs(scale - 1.0) > 0.01:
         new_w = int(round(iw * scale))
         new_h = int(round(ih * scale))
-        print(
-            f"Muse/Input | scaling from {iw}x{ih} to {new_w}x{new_h} "
-            f"to fit artboard {artboard_width}x{artboard_height}"
-        )
         img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
         iw, ih = img.width, img.height
 
     # Step 3: Center on artboard canvas, padding with transparency if needed.
-    print(
-        f"Muse/Input | placing {iw}x{ih} on "
-        f"{artboard_width}x{artboard_height} artboard"
-    )
     canvas = Image.new("RGBA", (artboard_width, artboard_height), (255, 255, 255, 0))
     x_offset = (artboard_width - iw) // 2
     y_offset = (artboard_height - ih) // 2
@@ -602,7 +601,6 @@ def sizing_and_padding_cc(img, recipe_name):
     artboard_height = get_spec_from_recipe_name(recipe_name, "artboardHeight")
 
     if not artboard_width or not artboard_height or artboard_width <= 0 or artboard_height <= 0:
-        print("No valid artboard dimensions specified, skipping resize")
         return img
 
     padding_start = get_spec_from_recipe_name(recipe_name, "paddingStart")
@@ -614,7 +612,6 @@ def sizing_and_padding_cc(img, recipe_name):
     # Step 1: initial scale to fit artboard as closely as possible
     iw, ih = img.width, img.height
     if iw <= 0 or ih <= 0:
-        print("CC Input | empty image, skipping resize")
         return img
 
     base_scale = min(artboard_width / iw, artboard_height / ih)
@@ -630,17 +627,11 @@ def sizing_and_padding_cc(img, recipe_name):
             new_w = int(round(new_w * band_scale))
             new_h = int(round(new_h * band_scale))
             img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            print(
-                f"CC Input | shrinking into padding band "
-                f"{padding_start*100:.0f}%-{padding_end*100:.0f}% "
-                f"-> content {new_w}x{new_h}"
-            )
         range_start_y = int(round(artboard_height * padding_start))
         content_height = band_height
     else:
         range_start_y = 0
         content_height = artboard_height
-        print(f"CC Input | scaling to full artboard: {artboard_width}x{artboard_height}")
 
     # Step 2/3: place scaled content onto artboard canvas
     padded_img = Image.new("RGBA", (artboard_width, artboard_height), (255, 255, 255, 0))
@@ -669,7 +660,6 @@ def sizing_and_padding_input(img, recipe_name):
     artboard_height = get_spec_from_recipe_name(recipe_name, "artboardHeight")
 
     if not artboard_width or not artboard_height or artboard_width <= 0 or artboard_height <= 0:
-        print("No valid artboard dimensions specified, skipping canvas adjust")
         return img
 
     if img.mode != "RGBA":
@@ -681,7 +671,6 @@ def sizing_and_padding_input(img, recipe_name):
 
     iw, ih = img.width, img.height
     if iw <= 0 or ih <= 0:
-        print("Muse/Input | image has no content after trim, skipping resize")
         return img
 
     # Step 2: Decide if we need to scale.
@@ -696,18 +685,10 @@ def sizing_and_padding_input(img, recipe_name):
     if abs(scale - 1.0) > 0.01:
         new_w = int(round(iw * scale))
         new_h = int(round(ih * scale))
-        print(
-            f"Muse/Input | scaling from {iw}x{ih} to {new_w}x{new_h} "
-            f"to fit artboard {artboard_width}x{artboard_height}"
-        )
         img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
         iw, ih = img.width, img.height
 
     # Step 3: Center on artboard canvas, padding with transparency.
-    print(
-        f"Muse/Input | placing {iw}x{ih} on "
-        f"{artboard_width}x{artboard_height} artboard"
-    )
     canvas = Image.new("RGBA", (artboard_width, artboard_height), (255, 255, 255, 0))
     x_offset = (artboard_width - iw) // 2
     y_offset = (artboard_height - ih) // 2
@@ -762,16 +743,12 @@ def apply_image_metadata_manipulation(img, recipe_name):
     rotation: degrees, negative = counter-clockwise, positive = clockwise.
     """
     if get_mirror_y(recipe_name):
-        print("mirrorY | Flipping image horizontally")
         img = img.transpose(Image.FLIP_LEFT_RIGHT)
 
     rotation = get_rotation_degrees(recipe_name)
     if rotation:
         # PIL rotates counter-clockwise for positive angles
-        pil_angle = -rotation
-        direction = "counter-clockwise" if rotation < 0 else "clockwise"
-        print(f"rotation {rotation}° ({direction}) | PIL rotate({pil_angle})")
-        img = img.rotate(pil_angle, expand=True)
+        img = img.rotate(-rotation, expand=True)
     return img
 
 
@@ -792,23 +769,19 @@ def get_transformation_matrix(img, recipe_name):
     width_mm = width / dpi / inches_per_mm
     height_mm = height / dpi / inches_per_mm
     
-    print(f"Attempting to center image on y-axis")
     transformation_matrix[4] = width_mm / -2
     
     # Apply Y translation if specified
     y_translation = get_spec_from_recipe_name(recipe_name, "yTranslation")
     if y_translation:
-        print(f"Translating image {y_translation}mm Y")
         transformation_matrix[5] = y_translation
     
     # Apply X translation if specified (overrides centering)
     x_translation = get_spec_from_recipe_name(recipe_name, "xTranslation")
     if x_translation:
-        print(f"Translating image {x_translation}mm X")
         transformation_matrix[4] = x_translation
     
     # Apply scaling (0.3125 = 96/300, converting from 300 DPI to 96 DPI)
-    print(f"Scaling image")
     transformation_matrix[0] = 0.3125
     transformation_matrix[3] = 0.3125
     

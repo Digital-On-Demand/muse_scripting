@@ -11,6 +11,7 @@ from lib import parse_filename
 # static variables
 IS_BETA = False
 LASER_FOLDER_PATH = "Y:/Shared/Muse"
+LASER_FOLDER_PATH = "Y:/Shared/Muse"
 device_id = "2CCF67398804" #obtained from device screen
 SLEEP_TIME = 5 #time to sleep before starting job
 
